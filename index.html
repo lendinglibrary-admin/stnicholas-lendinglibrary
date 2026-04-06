@@ -484,6 +484,11 @@
         <div class="form-row"><label>Title *</label><input type="text" id="add-title" placeholder="Book title"></div>
         <div class="form-row"><label>Author *</label><input type="text" id="add-author" placeholder="Author name"></div>
       </div>
+      <div class="form-row"><label>Subtitle</label><input type="text" id="add-subtitle" placeholder="Subtitle (if any)"></div>
+      <div class="form-row-2">
+        <div class="form-row"><label>Series</label><input type="text" id="add-series" placeholder="Series name"></div>
+        <div class="form-row"><label>Volume</label><input type="text" id="add-volume" placeholder="e.g. 2"></div>
+      </div>
       <div class="form-row-2">
         <div class="form-row"><label>Genre</label><select id="add-genre">
           <option value="">Select genre…</option>
@@ -498,6 +503,7 @@
         <div class="form-row"><label>Publisher</label><input type="text" id="add-publisher"></div>
         <div class="form-row"><label>Year</label><input type="text" id="add-year" placeholder="Year published"></div>
       </div>
+      <div class="form-row"><label>Summary</label><textarea id="add-summary" placeholder="Brief description of the book…" style="min-height:90px;"></textarea></div>
       <div class="form-row"><label>Notes</label><textarea id="add-notes" placeholder="Condition, shelf location, etc."></textarea></div>
       <div class="form-row">
         <label>Cover Image URL <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:0.8rem;color:var(--text-muted)">(optional — paste Google Drive or other image link)</span></label>
@@ -588,6 +594,11 @@
       <div class="form-row"><label>Title *</label><input type="text" id="edit-title"></div>
       <div class="form-row"><label>Author</label><input type="text" id="edit-author"></div>
     </div>
+    <div class="form-row"><label>Subtitle</label><input type="text" id="edit-subtitle" placeholder="Subtitle (if any)"></div>
+    <div class="form-row-2">
+      <div class="form-row"><label>Series</label><input type="text" id="edit-series" placeholder="Series name"></div>
+      <div class="form-row"><label>Volume</label><input type="text" id="edit-volume" placeholder="e.g. 2"></div>
+    </div>
     <div class="form-row-2">
       <div class="form-row"><label>Genre</label><select id="edit-genre">
         <option value="">Select genre…</option>
@@ -602,6 +613,7 @@
       <div class="form-row"><label>Publisher</label><input type="text" id="edit-publisher"></div>
       <div class="form-row"><label>Year</label><input type="text" id="edit-year"></div>
     </div>
+    <div class="form-row"><label>Summary</label><textarea id="edit-summary" style="min-height:90px;" placeholder="Brief description of the book…"></textarea></div>
     <div class="form-row"><label>Notes</label><textarea id="edit-notes"></textarea></div>
     <div class="form-row">
       <label>Cover Image URL <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:0.8rem;color:var(--text-muted)">(paste Google Drive or other image link — overrides ISBN lookup)</span></label>
@@ -611,6 +623,33 @@
       <button class="btn btn-danger" onclick="deleteBook()">Delete Book</button>
       <button class="btn btn-secondary" onclick="closeModal('modal-edit')">Cancel</button>
       <button class="btn btn-primary" id="edit-save-btn" onclick="saveEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- BOOK DETAIL MODAL (all roles) -->
+<div class="modal-bg" id="modal-detail">
+  <div class="modal" style="max-width:560px;">
+    <div style="display:flex;gap:18px;margin-bottom:1.25rem;align-items:flex-start;">
+      <div id="detail-cover" style="flex-shrink:0;"></div>
+      <div style="flex:1;min-width:0;">
+        <h2 style="margin-bottom:4px;" id="detail-title"></h2>
+        <div id="detail-subtitle" style="font-size:0.92rem;color:var(--text-muted);font-style:italic;margin-bottom:6px;"></div>
+        <div id="detail-author" style="font-size:0.9rem;color:var(--text-muted);margin-bottom:6px;"></div>
+        <div id="detail-series" style="font-size:0.85rem;color:var(--accent-light);margin-bottom:8px;"></div>
+        <div id="detail-meta" style="font-size:0.82rem;color:var(--text-muted);display:flex;flex-wrap:wrap;gap:8px;"></div>
+      </div>
+    </div>
+    <div id="detail-summary-wrap" style="display:none;margin-bottom:1rem;">
+      <div style="font-size:0.76rem;font-weight:500;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Summary</div>
+      <div id="detail-summary" style="font-size:0.9rem;line-height:1.6;color:var(--text);"></div>
+    </div>
+    <div id="detail-notes-wrap" style="display:none;margin-bottom:1rem;">
+      <div style="font-size:0.76rem;font-weight:500;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Library Notes</div>
+      <div id="detail-notes" style="font-size:0.88rem;color:var(--text-muted);font-style:italic;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-detail')">Close</button>
     </div>
   </div>
 </div>
@@ -904,7 +943,12 @@ function renderCatalog() {
           ? `<button class="btn btn-sm btn-primary" onclick="convertHoldToCheckout('${b.id}')">Check Out</button>`
           : `<button class="btn btn-sm btn-success" onclick="checkIn('${b.id}')">Check In</button>`;
       return `<tr>
-        <td><div class="title-cell">${coverImg(b.isbn, b.title, b.coverUrl)}<div><div class="book-title">${esc(b.title)}</div><div class="book-author">${esc(b.author)}</div></div></div></td>
+        <td><div class="title-cell">${coverImg(b.isbn, b.title, b.coverUrl)}<div>
+          <div class="book-title" style="cursor:pointer;text-decoration:underline;text-decoration-color:var(--border-dark);" onclick="openDetail('${b.id}')">${esc(b.title)}</div>
+          ${b.subtitle ? `<div style="font-size:0.8rem;color:var(--text-muted);font-style:italic;">${esc(b.subtitle)}</div>` : ''}
+          ${b.series   ? `<div style="font-size:0.78rem;color:var(--accent-light);">📚 ${esc(b.series)}${b.volume ? ` · Vol. ${esc(b.volume)}` : ''}</div>` : ''}
+          <div class="book-author">${esc(b.author)}</div>
+        </div></div></td>
         <td style="font-size:0.88rem;color:var(--text-muted)">${esc(b.genre||'—')}</td>
         <td style="font-size:0.82rem;color:var(--text-muted)">${esc(b.isbn||'—')}</td>
         <td>${badge}</td><td>${dueInfo}</td>
@@ -924,7 +968,12 @@ function renderCatalog() {
           ? `<span class="badge badge-on-hold">On Hold</span>`
           : '';
       return `<tr>
-        <td><div class="title-cell">${coverImg(b.isbn, b.title, b.coverUrl)}<div><div class="book-title">${esc(b.title)}</div><div class="book-author">${esc(b.author)}</div></div></div></td>
+        <td><div class="title-cell">${coverImg(b.isbn, b.title, b.coverUrl)}<div>
+          <div class="book-title" style="cursor:pointer;text-decoration:underline;text-decoration-color:var(--border-dark);" onclick="openDetail('${b.id}')">${esc(b.title)}</div>
+          ${b.subtitle ? `<div style="font-size:0.8rem;color:var(--text-muted);font-style:italic;">${esc(b.subtitle)}</div>` : ''}
+          ${b.series   ? `<div style="font-size:0.78rem;color:var(--accent-light);">📚 ${esc(b.series)}${b.volume ? ` · Vol. ${esc(b.volume)}` : ''}</div>` : ''}
+          <div class="book-author">${esc(b.author)}</div>
+        </div></div></td>
         <td style="font-size:0.88rem;color:var(--text-muted)">${esc(b.genre||'—')}</td>
         <td>${badge}</td><td>${dueInfo}</td><td>${holdBtn}</td>
       </tr>`;
@@ -946,7 +995,12 @@ function renderMyBooks() {
       : `<span class="badge badge-checked-out">Checked Out</span>`;
     const dueLabel = dueLabelHtml(b.dueDate, st);
     return `<tr>
-      <td><div class="title-cell">${coverImg(b.isbn, b.title, b.coverUrl)}<div><div class="book-title">${esc(b.title)}</div><div class="book-author">${esc(b.author)}</div></div></div></td>
+      <td><div class="title-cell">${coverImg(b.isbn, b.title, b.coverUrl)}<div>
+        <div class="book-title" style="cursor:pointer;text-decoration:underline;text-decoration-color:var(--border-dark);" onclick="openDetail('${b.id}')">${esc(b.title)}</div>
+        ${b.subtitle ? `<div style="font-size:0.8rem;color:var(--text-muted);font-style:italic;">${esc(b.subtitle)}</div>` : ''}
+        ${b.series   ? `<div style="font-size:0.78rem;color:var(--accent-light);">📚 ${esc(b.series)}${b.volume ? ` · Vol. ${esc(b.volume)}` : ''}</div>` : ''}
+        <div class="book-author">${esc(b.author)}</div>
+      </div></div></td>
       <td style="font-size:0.88rem">${formatDate(b.checkoutDate)}</td>
       <td style="font-size:0.88rem;color:${st==='overdue'?'var(--red)':'inherit'}">${formatDate(b.dueDate)}</td>
       <td>${dueLabel}</td>
@@ -1306,10 +1360,14 @@ function openEdit(id) {
   document.getElementById('edit-id').value       = id;
   document.getElementById('edit-title').value    = b.title;
   document.getElementById('edit-author').value   = b.author;
+  document.getElementById('edit-subtitle').value = b.subtitle||'';
+  document.getElementById('edit-series').value   = b.series||'';
+  document.getElementById('edit-volume').value   = b.volume||'';
   document.getElementById('edit-genre').value    = b.genre||'';
   document.getElementById('edit-isbn').value     = b.isbn||'';
   document.getElementById('edit-publisher').value= b.publisher||'';
   document.getElementById('edit-year').value     = b.year||'';
+  document.getElementById('edit-summary').value  = b.summary||'';
   document.getElementById('edit-notes').value    = b.notes||'';
   document.getElementById('edit-coverUrl').value = b.coverUrl||'';
   document.getElementById('modal-edit').classList.add('open');
@@ -1326,10 +1384,14 @@ async function saveEdit() {
   try {
     const params = { action:'updateBook', id, title,
       author:    document.getElementById('edit-author').value.trim(),
+      subtitle:  document.getElementById('edit-subtitle').value.trim(),
+      series:    document.getElementById('edit-series').value.trim(),
+      volume:    document.getElementById('edit-volume').value.trim(),
       genre:     document.getElementById('edit-genre').value,
       isbn:      document.getElementById('edit-isbn').value.trim(),
       publisher: document.getElementById('edit-publisher').value.trim(),
       year:      document.getElementById('edit-year').value.trim(),
+      summary:   document.getElementById('edit-summary').value.trim(),
       notes:     document.getElementById('edit-notes').value.trim(),
       coverUrl:  document.getElementById('edit-coverUrl').value.trim() };
     await api(params);
@@ -1367,10 +1429,14 @@ async function addBook() {
   document.getElementById('add-btn').textContent = 'Adding…';
   try {
     const params = { action:'addBook', title, author,
+      subtitle:  document.getElementById('add-subtitle').value.trim(),
+      series:    document.getElementById('add-series').value.trim(),
+      volume:    document.getElementById('add-volume').value.trim(),
       genre:     document.getElementById('add-genre').value,
       isbn:      document.getElementById('add-isbn').value.trim(),
       publisher: document.getElementById('add-publisher').value.trim(),
       year:      document.getElementById('add-year').value.trim(),
+      summary:   document.getElementById('add-summary').value.trim(),
       notes:     document.getElementById('add-notes').value.trim(),
       coverUrl:  document.getElementById('add-coverUrl').value.trim() };
     const result = await api(params);
@@ -1385,7 +1451,7 @@ async function addBook() {
 }
 
 function clearAddForm() {
-  ['add-title','add-author','add-isbn','add-publisher','add-year','add-notes','add-coverUrl']
+  ['add-title','add-author','add-subtitle','add-series','add-volume','add-isbn','add-publisher','add-year','add-summary','add-notes','add-coverUrl']
     .forEach(id => document.getElementById(id).value = '');
   document.getElementById('add-genre').value = '';
 }
@@ -1407,6 +1473,51 @@ function coverImg(isbn, title, coverUrl) {
   }
   return '<span class="cover-placeholder">&#128214;</span>';
 }
+// ══ BOOK DETAIL ═══════════════════════════════════════════
+function openDetail(id) {
+  const b = books.find(x => x.id===id); if (!b) return;
+
+  // Cover
+  const coverEl = document.getElementById('detail-cover');
+  if (b.coverUrl && b.coverUrl.trim()) {
+    coverEl.innerHTML = `<img src="${b.coverUrl.trim()}" style="width:80px;height:112px;object-fit:cover;border-radius:4px;border:1px solid var(--border);" onerror="this.parentElement.innerHTML='<span style=\'font-size:3rem;\'>📖</span>'">`;
+  } else if (b.isbn) {
+    const clean = b.isbn.replace(/[^0-9X]/gi,'');
+    if (clean.length===10||clean.length===13) {
+      coverEl.innerHTML = `<img src="https://covers.openlibrary.org/b/isbn/${clean}-M.jpg" style="width:80px;height:112px;object-fit:cover;border-radius:4px;border:1px solid var(--border);" onerror="this.parentElement.innerHTML='<span style=\'font-size:3rem;\'>📖</span>'">`;
+    } else { coverEl.innerHTML = '<span style="font-size:3rem;">📖</span>'; }
+  } else { coverEl.innerHTML = '<span style="font-size:3rem;">📖</span>'; }
+
+  document.getElementById('detail-title').textContent = b.title;
+  document.getElementById('detail-subtitle').textContent = b.subtitle||'';
+  document.getElementById('detail-subtitle').style.display = b.subtitle ? '' : 'none';
+  document.getElementById('detail-author').textContent = b.author ? `by ${b.author}` : '';
+
+  const seriesParts = [];
+  if (b.series) seriesParts.push(b.series);
+  if (b.volume) seriesParts.push(`Vol. ${b.volume}`);
+  const seriesEl = document.getElementById('detail-series');
+  seriesEl.textContent = seriesParts.length ? `📚 ${seriesParts.join(', ')}` : '';
+  seriesEl.style.display = seriesParts.length ? '' : 'none';
+
+  const meta = [];
+  if (b.genre)     meta.push(`<span style="background:var(--parchment);border:1px solid var(--border);border-radius:20px;padding:2px 9px;">${esc(b.genre)}</span>`);
+  if (b.year)      meta.push(`<span>${esc(b.year)}</span>`);
+  if (b.publisher) meta.push(`<span>${esc(b.publisher)}</span>`);
+  if (b.isbn)      meta.push(`<span>ISBN: ${esc(b.isbn)}</span>`);
+  document.getElementById('detail-meta').innerHTML = meta.join('');
+
+  const summaryWrap = document.getElementById('detail-summary-wrap');
+  summaryWrap.style.display = b.summary ? '' : 'none';
+  document.getElementById('detail-summary').textContent = b.summary||'';
+
+  const notesWrap = document.getElementById('detail-notes-wrap');
+  notesWrap.style.display = b.notes ? '' : 'none';
+  document.getElementById('detail-notes').textContent = b.notes||'';
+
+  document.getElementById('modal-detail').classList.add('open');
+}
+
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
 let toastTimer;

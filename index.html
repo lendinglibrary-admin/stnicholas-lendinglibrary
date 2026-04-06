@@ -962,10 +962,10 @@ function renderCatalog() {
         ? `<span style="font-size:0.82rem;color:${st==='overdue'?'var(--red)':'var(--text-muted)'}">
             Due ${formatDate(b.dueDate)}</span>`
         : b.status==='on-hold' ? '' : '—';
-      const holdBtn = b.status==='available'
-        ? `<button class="btn btn-sm btn-secondary" onclick="openHold('${b.id}')">Place Hold</button>`
-        : b.status==='on-hold'
-          ? `<span class="badge badge-on-hold">On Hold</span>`
+      const holdBtn = b.status==='on-hold'
+        ? `<span class="badge badge-on-hold">On Hold</span>`
+        : (b.status==='available' || b.status==='checked-out')
+          ? `<button class="btn btn-sm btn-secondary" onclick="openHold('${b.id}')">Place Hold</button>`
           : '';
       return `<tr>
         <td><div class="title-cell">${coverImg(b.isbn, b.title, b.coverUrl)}<div>

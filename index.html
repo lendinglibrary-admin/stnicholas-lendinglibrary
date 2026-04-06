@@ -1479,14 +1479,23 @@ function openDetail(id) {
 
   // Cover
   const coverEl = document.getElementById('detail-cover');
+  const fallbackCover = '<span style="font-size:3rem;">📖</span>';
   if (b.coverUrl && b.coverUrl.trim()) {
-    coverEl.innerHTML = `<img src="${b.coverUrl.trim()}" style="width:80px;height:112px;object-fit:cover;border-radius:4px;border:1px solid var(--border);" onerror="this.parentElement.innerHTML='<span style=\'font-size:3rem;\'>📖</span>'">`;
+    const img = document.createElement('img');
+    img.src = b.coverUrl.trim();
+    img.style.cssText = 'width:80px;height:112px;object-fit:cover;border-radius:4px;border:1px solid var(--border);';
+    img.onerror = function() { coverEl.innerHTML = fallbackCover; };
+    coverEl.innerHTML = ''; coverEl.appendChild(img);
   } else if (b.isbn) {
     const clean = b.isbn.replace(/[^0-9X]/gi,'');
     if (clean.length===10||clean.length===13) {
-      coverEl.innerHTML = `<img src="https://covers.openlibrary.org/b/isbn/${clean}-M.jpg" style="width:80px;height:112px;object-fit:cover;border-radius:4px;border:1px solid var(--border);" onerror="this.parentElement.innerHTML='<span style=\'font-size:3rem;\'>📖</span>'">`;
-    } else { coverEl.innerHTML = '<span style="font-size:3rem;">📖</span>'; }
-  } else { coverEl.innerHTML = '<span style="font-size:3rem;">📖</span>'; }
+      const img = document.createElement('img');
+      img.src = 'https://covers.openlibrary.org/b/isbn/' + clean + '-M.jpg';
+      img.style.cssText = 'width:80px;height:112px;object-fit:cover;border-radius:4px;border:1px solid var(--border);';
+      img.onerror = function() { coverEl.innerHTML = fallbackCover; };
+      coverEl.innerHTML = ''; coverEl.appendChild(img);
+    } else { coverEl.innerHTML = fallbackCover; }
+  } else { coverEl.innerHTML = fallbackCover; }
 
   document.getElementById('detail-title').textContent = b.title;
   document.getElementById('detail-subtitle').textContent = b.subtitle||'';

@@ -658,7 +658,7 @@
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // ══ CONFIG — change these two lines ══════════════════════
-const SCRIPT_URL   = 'https://script.google.com/macros/s/AKfycbwrx2IM34xiJctmm_NMbve88pcmwIZmhU2BDoGuxMYYEQtg87HofH-5yoTOUYfRTN576g/exec';
+const SCRIPT_URL   = 'https://script.google.com/macros/s/AKfycbxvcJFhnTag9JublVNLZmtv0glw3C8NghMzgMD6HaR3tRkSxWNh8-UXOkrDFgD0w57FQw/exec';
 const ADMIN_PASSWORD = 'frmichaelmassouh';   // ← change this
 
 // ══ STATE ════════════════════════════════════════════════
@@ -944,7 +944,7 @@ function renderCatalog() {
           : `<button class="btn btn-sm btn-success" onclick="checkIn('${b.id}')">Check In</button>`;
       return `<tr>
         <td><div class="title-cell">${coverImg(b.isbn, b.title, b.coverUrl)}<div>
-          <div class="book-title" style="cursor:pointer;text-decoration:underline;text-decoration-color:var(--border-dark);" onclick="openDetail('${b.id}')">${esc(b.title)}</div>
+          <div class="book-title" style="cursor:pointer;text-decoration:underline;text-decoration-color:var(--border-dark);" onclick="openDetail(this.dataset.id)" data-id="${esc(b.id)}">${esc(b.title)}</div>
           ${b.subtitle ? `<div style="font-size:0.8rem;color:var(--text-muted);font-style:italic;">${esc(b.subtitle)}</div>` : ''}
           ${b.series   ? `<div style="font-size:0.78rem;color:var(--accent-light);">📚 ${esc(b.series)}${b.volume ? ` · Vol. ${esc(b.volume)}` : ''}</div>` : ''}
           <div class="book-author">${esc(b.author)}</div>
@@ -969,7 +969,7 @@ function renderCatalog() {
           : '';
       return `<tr>
         <td><div class="title-cell">${coverImg(b.isbn, b.title, b.coverUrl)}<div>
-          <div class="book-title" style="cursor:pointer;text-decoration:underline;text-decoration-color:var(--border-dark);" onclick="openDetail('${b.id}')">${esc(b.title)}</div>
+          <div class="book-title" style="cursor:pointer;text-decoration:underline;text-decoration-color:var(--border-dark);" onclick="openDetail(this.dataset.id)" data-id="${esc(b.id)}">${esc(b.title)}</div>
           ${b.subtitle ? `<div style="font-size:0.8rem;color:var(--text-muted);font-style:italic;">${esc(b.subtitle)}</div>` : ''}
           ${b.series   ? `<div style="font-size:0.78rem;color:var(--accent-light);">📚 ${esc(b.series)}${b.volume ? ` · Vol. ${esc(b.volume)}` : ''}</div>` : ''}
           <div class="book-author">${esc(b.author)}</div>
@@ -996,7 +996,7 @@ function renderMyBooks() {
     const dueLabel = dueLabelHtml(b.dueDate, st);
     return `<tr>
       <td><div class="title-cell">${coverImg(b.isbn, b.title, b.coverUrl)}<div>
-        <div class="book-title" style="cursor:pointer;text-decoration:underline;text-decoration-color:var(--border-dark);" onclick="openDetail('${b.id}')">${esc(b.title)}</div>
+        <div class="book-title" style="cursor:pointer;text-decoration:underline;text-decoration-color:var(--border-dark);" onclick="openDetail(this.dataset.id)" data-id="${esc(b.id)}">${esc(b.title)}</div>
         ${b.subtitle ? `<div style="font-size:0.8rem;color:var(--text-muted);font-style:italic;">${esc(b.subtitle)}</div>` : ''}
         ${b.series   ? `<div style="font-size:0.78rem;color:var(--accent-light);">📚 ${esc(b.series)}${b.volume ? ` · Vol. ${esc(b.volume)}` : ''}</div>` : ''}
         <div class="book-author">${esc(b.author)}</div>
@@ -1475,7 +1475,7 @@ function coverImg(isbn, title, coverUrl) {
 }
 // ══ BOOK DETAIL ═══════════════════════════════════════════
 function openDetail(id) {
-  const b = books.find(x => x.id===id); if (!b) return;
+  const b = books.find(x => String(x.id).trim() === String(id).trim()); if (!b) return;
 
   // Cover
   const coverEl = document.getElementById('detail-cover');

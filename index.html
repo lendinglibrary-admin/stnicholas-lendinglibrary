@@ -921,6 +921,7 @@ function renderCatalog() {
   document.getElementById('catalog-empty').style.display = filtered.length ? 'none' : 'block';
 
   tbody.innerHTML = filtered.map(b => {
+    const idx = books.indexOf(b);
     const st = getStatus(b);
     const badge = st==='available'
       ? `<span class="badge badge-available">Available</span>`
@@ -944,7 +945,7 @@ function renderCatalog() {
           : `<button class="btn btn-sm btn-success" onclick="checkIn('${b.id}')">Check In</button>`;
       return `<tr>
         <td><div class="title-cell">${coverImg(b.isbn, b.title, b.coverUrl)}<div>
-          <div class="book-title" style="cursor:pointer;text-decoration:underline;text-decoration-color:var(--border-dark);" onclick="openDetail(this.dataset.id)" data-id="${esc(b.id)}">${esc(b.title)}</div>
+          <div class="book-title" style="cursor:pointer;text-decoration:underline;text-decoration-color:var(--border-dark);" onclick="openDetail(${idx})">${esc(b.title)}</div>
           ${b.subtitle ? `<div style="font-size:0.8rem;color:var(--text-muted);font-style:italic;">${esc(b.subtitle)}</div>` : ''}
           ${b.series   ? `<div style="font-size:0.78rem;color:var(--accent-light);">📚 ${esc(b.series)}${b.volume ? ` · Vol. ${esc(b.volume)}` : ''}</div>` : ''}
           <div class="book-author">${esc(b.author)}</div>
@@ -969,7 +970,7 @@ function renderCatalog() {
           : '';
       return `<tr>
         <td><div class="title-cell">${coverImg(b.isbn, b.title, b.coverUrl)}<div>
-          <div class="book-title" style="cursor:pointer;text-decoration:underline;text-decoration-color:var(--border-dark);" onclick="openDetail(this.dataset.id)" data-id="${esc(b.id)}">${esc(b.title)}</div>
+          <div class="book-title" style="cursor:pointer;text-decoration:underline;text-decoration-color:var(--border-dark);" onclick="openDetail(${idx})">${esc(b.title)}</div>
           ${b.subtitle ? `<div style="font-size:0.8rem;color:var(--text-muted);font-style:italic;">${esc(b.subtitle)}</div>` : ''}
           ${b.series   ? `<div style="font-size:0.78rem;color:var(--accent-light);">📚 ${esc(b.series)}${b.volume ? ` · Vol. ${esc(b.volume)}` : ''}</div>` : ''}
           <div class="book-author">${esc(b.author)}</div>
@@ -989,6 +990,7 @@ function renderMyBooks() {
   const mine = books.filter(b => b.borrowerPin === borrowerPin && b.status === 'checked-out');
   document.getElementById('mybooks-empty').style.display = mine.length ? 'none' : 'block';
   document.getElementById('mybooks-tbody').innerHTML = mine.map(b => {
+    const idx = books.indexOf(b);
     const st = getStatus(b);
     const badge = st==='overdue'
       ? `<span class="badge badge-overdue">Overdue</span>`
@@ -996,7 +998,7 @@ function renderMyBooks() {
     const dueLabel = dueLabelHtml(b.dueDate, st);
     return `<tr>
       <td><div class="title-cell">${coverImg(b.isbn, b.title, b.coverUrl)}<div>
-        <div class="book-title" style="cursor:pointer;text-decoration:underline;text-decoration-color:var(--border-dark);" onclick="openDetail(this.dataset.id)" data-id="${esc(b.id)}">${esc(b.title)}</div>
+        <div class="book-title" style="cursor:pointer;text-decoration:underline;text-decoration-color:var(--border-dark);" onclick="openDetail(${idx})">${esc(b.title)}</div>
         ${b.subtitle ? `<div style="font-size:0.8rem;color:var(--text-muted);font-style:italic;">${esc(b.subtitle)}</div>` : ''}
         ${b.series   ? `<div style="font-size:0.78rem;color:var(--accent-light);">📚 ${esc(b.series)}${b.volume ? ` · Vol. ${esc(b.volume)}` : ''}</div>` : ''}
         <div class="book-author">${esc(b.author)}</div>
@@ -1474,8 +1476,9 @@ function coverImg(isbn, title, coverUrl) {
   return '<span class="cover-placeholder">&#128214;</span>';
 }
 // ══ BOOK DETAIL ═══════════════════════════════════════════
-function openDetail(id) {
-  const b = books.find(x => String(x.id).trim() === String(id).trim()); if (!b) return;
+function openDetail(idx) {
+  const b = books[idx];
+  if (!b) return;
 
   // Cover
   const coverEl = document.getElementById('detail-cover');

@@ -832,7 +832,7 @@ function getStatus(book) {
   if (book.status === 'on-hold') return 'on-hold';
   if (book.status !== 'checked-out') return 'available';
   const today = new Date(); today.setHours(0,0,0,0);
-  const due = new Date(book.dueDate + 'T00:00:00');
+  const due = new Date(book.dueDate );
   return due < today ? 'overdue' : 'checked-out';
 }
 function formatDate(d) {
@@ -842,7 +842,7 @@ function formatDate(d) {
 function dueLabelHtml(dueDate, status) {
   if (!dueDate) return '—';
   const today = new Date(); today.setHours(0,0,0,0);
-  const due   = new Date(dueDate + 'T00:00:00');
+  const due   = new Date(dueDate);
   const diff  = Math.round((due - today) / (1000 * 60 * 60 * 24));
   if (status === 'overdue') {
     const n = Math.abs(diff);
@@ -1123,7 +1123,7 @@ function openOverdueModal() {
 
   document.getElementById('overdue-notice-list').innerHTML = borrowers.map(r => {
     const bookLines = r.books.map(b => {
-      const due = new Date(b.dueDate + 'T00:00:00');
+      const due = new Date(b.dueDate );
       const days = Math.round((today - due) / (1000*60*60*24));
       return '\u2022 "' + b.title + '" \u2014 ' + days + ' day' + (days!==1?'s':'') + ' overdue (due ' + formatDate(b.dueDate) + ')';
     }).join('\n');
@@ -1182,7 +1182,7 @@ function renderHistory() {
   document.getElementById('history-empty').style.display = rows.length ? 'none' : 'block';
   document.getElementById('history-tbody').innerHTML = rows.map(r => {
     const days = (r.checkoutDate && r.returnDate)
-      ? Math.round((new Date(r.returnDate) - new Date(r.checkoutDate + 'T00:00:00')) / (1000*60*60*24))
+      ? Math.round((new Date(r.returnDate) - new Date(r.checkoutDate )) / (1000*60*60*24))
       : '—';
     return `<tr>
       <td><div class="book-title">${esc(r.title||'—')}</div><div class="book-author">${esc(r.author||'')}</div></td>

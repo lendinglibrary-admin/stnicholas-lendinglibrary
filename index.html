@@ -1082,12 +1082,12 @@ function renderCatalog() {
 
   const start = (currentPage - 1) * booksPerPage;
   const end = start + booksPerPage;
-  const paginatedBooks = filteredBooks.slice(start, end);).sort((a,b) => a.title.localeCompare(b.title));
+  const paginatedBooks = filteredBooks.slice(start, end);
 
   const tbody = document.getElementById('catalog-tbody');
-  document.getElementById('catalog-empty').style.display = filtered.length ? 'none' : 'block';
+  document.getElementById('catalog-empty').style.display = filteredBooks.length ? 'none' : 'block';
 
-  tbody.innerHTML = paginatedbooks.map(b => {
+  tbody.innerHTML = paginatedBooks.map(b => {
     const idx = books.indexOf(b);
     const st = getStatus(b);
     const badge = st==='available'

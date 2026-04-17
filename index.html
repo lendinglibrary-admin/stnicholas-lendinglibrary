@@ -775,12 +775,14 @@
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // ══ CONFIG — change these two lines ══════════════════════
-const SCRIPT_URL   = 'https://script.google.com/macros/s/AKfycbwrlkdpibyWPsCTcVZqbIw2nqIoH3ASRnRpiKvC1RYAsCWqCKRySAhGkaPyd-cXWnwl1w/exec';
+const SCRIPT_URL   = 'https://script.google.com/macros/s/AKfycbyP1SxKQi4ujNqaGLp5jR2oL0HBXgT6MEVi2HasJaH7jp4E26OW5V-2rOJPVB_IkqyCXA/exec';
 const ADMIN_PASSWORD = 'frmichaelmassouh';   // ← change this
 
 // ══ STATE ════════════════════════════════════════════════
 let currentPage = 1;
 const booksPerPage = 20;
+let totalBooksInLibrary = 0;  // Total count from backend
+let totalPagesInLibrary = 0;  // Total pages from backend
 let filteredBooks = [];
 let books = [];
 let history = [];
@@ -933,8 +935,17 @@ async function loadBooks() {
   document.getElementById('catalog-tbody').innerHTML =
     '<tr class="loading-row"><td colspan="6"><span class="spinner"></span>Loading…</td></tr>';
   try {
-    const data = await api({ action: 'getBooks' });
+    // Load ONLY the current page (booksPerPage = 20)
+    // Pass page number to backend for pagination
+    const pageNum = currentPage || 1;
+    const data = await api({ 
+      action: 'getBooks',
+      page: pageNum,
+      limit: booksPerPage
+    });
     books = data.books || [];
+    totalBooksInLibrary = data.total || 0;  // Store total count from backend
+    totalPagesInLibrary = data.totalPages || 0;  // Store total pages from backend
     renderCatalog();
     if (currentRole === 'admin')    renderCheckout();
     if (currentRole === 'borrower') renderMyBooks();
@@ -1021,14 +1032,33 @@ function populateGenreFilter() {
   sel.innerHTML = '<option value="">All genres</option>' + genres.map(g =>
     `<option${g===cur?' selected':''}>${esc(g)}</option>`).join('');
 }
-function goToPage(page) {
-  const totalPages = Math.ceil(filteredBooks.length / booksPerPage) || 1;
+async function goToPage(page) {
+  const totalPages = totalPagesInLibrary || 1;
   currentPage = Math.max(1, Math.min(page, totalPages));
-  renderCatalog();
+  
+  // Fetch only this page's books from backend
+  if (!SCRIPT_URL) {
+    renderCatalog();
+    return;
+  }
+  try {
+    const data = await api({ 
+      action: 'getBooks',
+      page: currentPage,
+      limit: booksPerPage
+    });
+    books = data.books || [];
+    totalBooksInLibrary = data.total || 0;
+    totalPagesInLibrary = data.totalPages || 0;
+    renderCatalog();
+  } catch(e) {
+    showToast('Error loading page. Try again.', true);
+    console.error(e);
+  }
 }
 
 function renderPagination(totalItems) {
-  const totalPages = Math.ceil(totalItems / booksPerPage) || 1;
+  const totalPages = totalPagesInLibrary || Math.ceil(totalItems / booksPerPage) || 1;
 
   const html = `
     <button class="btn btn-secondary btn-sm"
@@ -1067,25 +1097,16 @@ function renderCatalog() {
   renderStats();
   populateGenreFilter();
   const isAdmin = currentRole === 'admin';
-  const q      = (document.getElementById('search').value||'').toLowerCase();
-  const genre  = document.getElementById('filter-genre').value;
-  const statusF= document.getElementById('filter-status').value;
 
-  filteredBooks = books.filter(b => {
-  const st = getStatus(b);
-  return (!q || b.title.toLowerCase().includes(q)
-      || (b.author || '').toLowerCase().includes(q)
-      || (b.isbn || '').includes(q))
-      && (!genre || b.genre === genre)
-      && (!statusF || st === statusF);
-  }).sort((a,b) => a.title.localeCompare(b.title));
-
-  const start = (currentPage - 1) * booksPerPage;
-  const end = start + booksPerPage;
-  const paginatedBooks = filteredBooks.slice(start, end);
+  // Since we're loading one page at a time from backend, 
+  // books array only contains this page's books. Don't filter locally.
+  const paginatedBooks = books;
 
   const tbody = document.getElementById('catalog-tbody');
-  document.getElementById('catalog-empty').style.display = filteredBooks.length ? 'none' : 'block';
+  
+  // Use the total count from backend, not local filtering
+  const totalItemsCount = totalBooksInLibrary || 0;
+  document.getElementById('catalog-empty').style.display = (totalItemsCount > 0 && paginatedBooks.length === 0) ? 'none' : (totalItemsCount === 0 ? 'block' : 'none');
 
   tbody.innerHTML = paginatedBooks.map(b => {
     const idx = books.indexOf(b);
@@ -1147,7 +1168,7 @@ function renderCatalog() {
       </tr>`;
     }
   }).join('');
-  renderPagination(filteredBooks.length);
+  renderPagination(totalBooksInLibrary || 0);
 }
 
 // ══ MY BOOKS ═════════════════════════════════════════════

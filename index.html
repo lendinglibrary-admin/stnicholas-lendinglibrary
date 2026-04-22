@@ -1005,12 +1005,19 @@ function renderStats() {
   
   // Only show stats for admin users
   const isAdmin = currentRole === 'admin';
+  const statsBar = document.getElementById('stats-bar');
   
-  document.getElementById('stats-bar').innerHTML = isAdmin ? `
-    <div class="stat-card"><div class="num">${total}</div><div class="lbl">Total Books</div></div>
-    <div class="stat-card"><div class="num">${available}</div><div class="lbl">Available</div></div>
-    <div class="stat-card"><div class="num">${checkedOut}</div><div class="lbl">Checked Out</div></div>
-    <div class="stat-card"><div class="num" style="color:${overdue>0?'var(--red)':'var(--green)'}">${overdue}</div><div class="lbl">Overdue</div></div>` : '';
+  if (isAdmin) {
+    statsBar.style.display = '';
+    statsBar.innerHTML = `
+      <div class="stat-card"><div class="num">${total}</div><div class="lbl">Total Books</div></div>
+      <div class="stat-card"><div class="num">${available}</div><div class="lbl">Available</div></div>
+      <div class="stat-card"><div class="num">${checkedOut}</div><div class="lbl">Checked Out</div></div>
+      <div class="stat-card"><div class="num" style="color:${overdue>0?'var(--red)':'var(--green)'}">${overdue}</div><div class="lbl">Overdue</div></div>`;
+  } else {
+    statsBar.style.display = 'none';
+    statsBar.innerHTML = '';
+  }
   
   const alertHtml = (isAdmin && overdue > 0)
     ? `<div class="alert">⚠ ${overdue} book${overdue>1?'s are':' is'} overdue.</div>` : '';

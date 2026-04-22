@@ -775,7 +775,7 @@
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // ══ CONFIG — change these two lines ══════════════════════
-const SCRIPT_URL   = 'https://script.google.com/macros/s/AKfycbzenMCKsklv0ylk8ak_enikQLbzK9i6LBlubhrjqSnaJh4YSd8GvHAXeG9hXDtP5R6U/exec';
+const SCRIPT_URL   = 'https://script.google.com/macros/s/AKfycbwrlkdpibyWPsCTcVZqbIw2nqIoH3ASRnRpiKvC1RYAsCWqCKRySAhGkaPyd-cXWnwl1w/exec';
 const ADMIN_PASSWORD = 'frmichaelmassouh';   // ← change this
 
 // ══ STATE ════════════════════════════════════════════════
@@ -1002,12 +1002,17 @@ function renderStats() {
   const available  = books.filter(b => b.status === 'available').length;
   const checkedOut = books.filter(b => b.status === 'checked-out').length;
   const overdue    = books.filter(b => getStatus(b) === 'overdue').length;
-  document.getElementById('stats-bar').innerHTML = `
+  
+  // Only show stats for admin users
+  const isAdmin = currentRole === 'admin';
+  
+  document.getElementById('stats-bar').innerHTML = isAdmin ? `
     <div class="stat-card"><div class="num">${total}</div><div class="lbl">Total Books</div></div>
     <div class="stat-card"><div class="num">${available}</div><div class="lbl">Available</div></div>
     <div class="stat-card"><div class="num">${checkedOut}</div><div class="lbl">Checked Out</div></div>
-    <div class="stat-card"><div class="num" style="color:${overdue>0?'var(--red)':'var(--green)'}">${overdue}</div><div class="lbl">Overdue</div></div>`;
-  const alertHtml = overdue > 0
+    <div class="stat-card"><div class="num" style="color:${overdue>0?'var(--red)':'var(--green)'}">${overdue}</div><div class="lbl">Overdue</div></div>` : '';
+  
+  const alertHtml = (isAdmin && overdue > 0)
     ? `<div class="alert">⚠ ${overdue} book${overdue>1?'s are':' is'} overdue.</div>` : '';
   document.getElementById('overdue-alert').innerHTML = alertHtml;
   if (document.getElementById('overdue-alert2'))
